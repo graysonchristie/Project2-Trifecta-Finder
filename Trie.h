@@ -1,0 +1,8 @@
+//
+// Created by gchri on 7/10/2026.
+//
+
+#ifndef PROJECT2_TRIFECTA_FINDER_TRIE_H
+#define PROJECT2_TRIFECTA_FINDER_TRIE_H
+
+#endif //PROJECT2_TRIFECTA_FINDER_TRIE_H
