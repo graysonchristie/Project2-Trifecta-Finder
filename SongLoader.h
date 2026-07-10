@@ -5,12 +5,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
 
 class SongLoader {
 private:
-    // Splits a CSV line while respecting quotes.
+    // Splits one CSV row into columns while respecting quoted commas.
     static vector<string> splitCSVLine(const string& line) {
         vector<string> columns;
         string current;
@@ -33,7 +34,7 @@ private:
         return columns;
     }
 
-    // Basic cleanup for weird spacing/quotes.
+    // Removes extra spaces and surrounding quotes.
     static string cleanString(string text) {
         while (!text.empty() && text.front() == ' ') {
             text.erase(text.begin());
@@ -60,6 +61,7 @@ public:
         }
 
         vector<string> entries;
+        set<string> seen;
         string line;
 
         // Skip header row
@@ -69,8 +71,8 @@ public:
             vector<string> columns = splitCSVLine(line);
 
             /*
-             Dataset columns:
-             1 = unnamed index
+             Parsed dataset columns:
+             1 = unnamed row index
              2 = track_id
              3 = artists
              4 = album_name
@@ -83,7 +85,12 @@ public:
 
                 if (!artist.empty() && !song.empty()) {
                     string entry = artist + " - " + song;
-                    entries.push_back(entry);
+
+                    // Avoid duplicate entries
+                    if (seen.find(entry) == seen.end()) {
+                        entries.push_back(entry);
+                        seen.insert(entry);
+                    }
                 }
             }
         }
