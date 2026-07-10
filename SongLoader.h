@@ -70,16 +70,16 @@ public:
 
             /*
              Dataset columns:
-             0 = unnamed index
-             1 = track_id
-             2 = artists
-             3 = album_name
-             4 = track_name
+             1 = unnamed index
+             2 = track_id
+             3 = artists
+             4 = album_name
+             5 = track_name
             */
 
-            if (columns.size() > 4) {
+            if (columns.size() > 5) {
                 string artist = cleanString(columns[3]);
-                string song = cleanString(columns[4]);
+                string song = cleanString(columns[5]);
 
                 if (!artist.empty() && !song.empty()) {
                     string entry = artist + " - " + song;
