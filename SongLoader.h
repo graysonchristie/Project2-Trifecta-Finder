@@ -9,9 +9,15 @@
 
 using namespace std;
 
+// One searchable version of a track
+struct SearchEntry {
+    string key;      // Text inserted/searched in Trie or Hash Table
+    string display;  // Text shown to the user
+};
+
 class SongLoader {
 private:
-    // Splits one CSV row into columns while respecting quoted commas.
+    // Splits a CSV row while keeping commas inside quotes together.
     static vector<string> splitCSVLine(const string& line) {
         vector<string> columns;
         string current;
@@ -34,7 +40,7 @@ private:
         return columns;
     }
 
-    // Removes extra spaces and surrounding quotes.
+    // Removes unnecessary spaces and surrounding quotes.
     static string cleanString(string text) {
         while (!text.empty() && text.front() == ' ') {
             text.erase(text.begin());
@@ -44,7 +50,10 @@ private:
             text.pop_back();
         }
 
-        if (text.size() >= 2 && text.front() == '"' && text.back() == '"') {
+        if (text.size() >= 2 &&
+            text.front() == '"' &&
+            text.back() == '"') {
+
             text = text.substr(1, text.size() - 2);
         }
 
@@ -52,19 +61,24 @@ private:
     }
 
 public:
-    static vector<string> loadSongs(const string& filename) {
+    static vector<SearchEntry> loadSongs(const string& filename) {
         ifstream file(filename);
 
         if (!file.is_open()) {
-            cout << "Could not open dataset file: " << filename << endl;
+            cout << "Could not open dataset file: "
+                 << filename << endl;
+
             return {};
         }
 
-        vector<string> entries;
+        vector<SearchEntry> entries;
+
+        // Prevent duplicate searchable records.
         set<string> seen;
+
         string line;
 
-        // Skip header row
+        // Skip CSV header.
         getline(file, line);
 
         while (getline(file, line)) {
@@ -72,6 +86,7 @@ public:
 
             /*
              Parsed dataset columns:
+
              1 = unnamed row index
              2 = track_id
              3 = artists
@@ -84,12 +99,20 @@ public:
                 string song = cleanString(columns[5]);
 
                 if (!artist.empty() && !song.empty()) {
-                    string entry = artist + " - " + song;
+                    string display = artist + " - " + song;
 
-                    // Avoid duplicate entries
-                    if (seen.find(entry) == seen.end()) {
-                        entries.push_back(entry);
-                        seen.insert(entry);
+                    // Artist-search version
+                    string artistRecord = artist + "|" + display;
+
+                    if (seen.insert(artistRecord).second) {
+                        entries.push_back({artist, display});
+                    }
+
+                    // Song-search version
+                    string songRecord = song + "|" + display;
+
+                    if (seen.insert(songRecord).second) {
+                        entries.push_back({song, display});
                     }
                 }
             }
@@ -99,5 +122,6 @@ public:
         return entries;
     }
 };
+
 
 #endif //PROJECT2_TRIFECTA_FINDER_SONGLOADER_H
