@@ -125,5 +125,4 @@ public:
 
 
 
-
 #endif //PROJECT2_TRIFECTA_FINDER_TRIE_H
