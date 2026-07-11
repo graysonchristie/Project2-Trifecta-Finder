@@ -1,9 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <limits>
-#include <vector>
 #include <string>
-#include <cctype>
+#include <vector>
 
 #include "SongLoader.h"
 #include "HashTable.h"
@@ -53,9 +52,118 @@ void runHashTableSearch(HashTable& hashTable) {
 
     displayResults(results);
 
-    cout << "\nHash-table search time: "
+    cout << "\nHash table search time: "
          << searchTime.count()
          << " nanoseconds" << endl;
+}
+
+// Runs one Trie autocomplete search.
+void runTrieSearch(Trie& trie) {
+    string query;
+
+    cout << "\nEnter an artist or song prefix: ";
+    getline(cin, query);
+
+    if (query.empty()) {
+        cout << "Search cannot be empty." << endl;
+        return;
+    }
+
+    auto start = chrono::high_resolution_clock::now();
+
+    vector<string> results = trie.search(query);
+
+    auto end = chrono::high_resolution_clock::now();
+
+    auto searchTime =
+        chrono::duration_cast<chrono::nanoseconds>(end - start);
+
+    displayResults(results);
+
+    cout << "\nTrie search time: "
+         << searchTime.count()
+         << " nanoseconds" << endl;
+}
+
+// Compares both structures using the exact same query.
+void compareSearches(HashTable& hashTable, Trie& trie) {
+    string query;
+
+    cout << "\nEnter an artist or song prefix: ";
+    getline(cin, query);
+
+    if (query.empty()) {
+        cout << "Search cannot be empty." << endl;
+        return;
+    }
+
+    const int trials = 100;
+
+    vector<string> hashResults;
+    vector<string> trieResults;
+
+    auto hashStart = chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < trials; i++) {
+        hashResults = hashTable.search(query);
+    }
+
+    auto hashEnd = chrono::high_resolution_clock::now();
+
+    auto trieStart = chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < trials; i++) {
+        trieResults = trie.search(query);
+    }
+
+    auto trieEnd = chrono::high_resolution_clock::now();
+
+    auto hashTotal =
+        chrono::duration_cast<chrono::nanoseconds>(
+            hashEnd - hashStart
+        ).count();
+
+    auto trieTotal =
+        chrono::duration_cast<chrono::nanoseconds>(
+            trieEnd - trieStart
+        ).count();
+
+    double hashAverage =
+        static_cast<double>(hashTotal) / trials;
+
+    double trieAverage =
+        static_cast<double>(trieTotal) / trials;
+
+    cout << "\nSearch comparison for \"" << query << "\":" << endl;
+
+    cout << "Hash Table average: "
+         << hashAverage
+         << " nanoseconds" << endl;
+
+    cout << "Trie average: "
+         << trieAverage
+         << " nanoseconds" << endl;
+
+    cout << "\nHash Table matches: "
+         << hashResults.size() << endl;
+
+    cout << "Trie matches: "
+         << trieResults.size() << endl;
+
+    if (hashAverage < trieAverage) {
+        cout << "\nHash Table was faster for this search." << endl;
+    }
+    else if (trieAverage < hashAverage) {
+        cout << "\nTrie was faster for this search." << endl;
+    }
+    else {
+        cout << "\nBoth structures had the same average time." << endl;
+    }
+
+    if (hashResults.size() != trieResults.size()) {
+        cout << "\nWarning: The two structures returned a different "
+             << "number of results." << endl;
+    }
 }
 
 // Displays the main menu.
@@ -90,23 +198,25 @@ int main() {
     cout << "Loaded " << songs.size()
          << " searchable entries." << endl;
 
-    // Create the hash table.
     HashTable hashTable(200003);
+    Trie trie;
 
-    cout << "Building hash table..." << endl;
+    cout << "Building Hash Table and Trie..." << endl;
 
-    // Insert every prefix from each artist or song key.
     for (const auto& entry : songs) {
         string key = entry.key;
 
+        // Hash table needs every prefix inserted separately.
         for (size_t i = 1; i <= key.length(); i++) {
             string prefix = key.substr(0, i);
-
             hashTable.insert(prefix, entry.display);
         }
+
+        // Trie only needs the full key inserted once.
+        trie.insert(entry.key, entry.display);
     }
 
-    cout << "Hash table built successfully." << endl;
+    cout << "Data structures built successfully." << endl;
 
     int choice;
 
@@ -137,14 +247,11 @@ int main() {
                 break;
 
             case 2:
-                cout << "\nTrie search (placeholder)"
-                     << endl;
+                runTrieSearch(trie);
                 break;
 
             case 3:
-                cout << "\nComparison (placeholder)"
-                     << "the Trie is added."
-                     << endl;
+                compareSearches(hashTable, trie);
                 break;
 
             case 4:
