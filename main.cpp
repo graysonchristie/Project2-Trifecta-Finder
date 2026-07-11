@@ -137,12 +137,12 @@ int main() {
                 break;
 
             case 2:
-                cout << "\nTrie search is not available yet."
+                cout << "\nTrie search (placeholder)"
                      << endl;
                 break;
 
             case 3:
-                cout << "\nComparison is not available until "
+                cout << "\nComparison (placeholder)"
                      << "the Trie is added."
                      << endl;
                 break;
